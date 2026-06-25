@@ -8,9 +8,10 @@ import lombok.Data;
 public class Task {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-    @Column(length = 100)
-    private String TaskName;
+    private String title;
+
+    private Boolean completed;
 }

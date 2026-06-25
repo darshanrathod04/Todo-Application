@@ -18,14 +18,20 @@ public class TaskService {
         return taskRepo.save(task);
     }
 
-    public List<Task> getAllTask(){
+    public List<Task> getAllTasks(){
         return taskRepo.findAll();
     }
 
-    public Task deleteBYId(Long id) {
-        Task task = taskRepo.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
-        taskRepo.deleteById(id);
-        return task;
+    public Task upadateTask(Long id, Task taskDetails){
+        Task task = taskRepo.findById(id).orElseThrow(() -> new RuntimeException("task not found"));
+        task.setTitle(taskDetails.getTitle());
+        task.setCompleted(taskDetails.getCompleted());
+        return taskRepo.save(task);
+    }
+
+    public void deleteTask(Long id){
+        Task task = taskRepo.findById(id).orElseThrow();
+        taskRepo.delete(task);
     }
 
 

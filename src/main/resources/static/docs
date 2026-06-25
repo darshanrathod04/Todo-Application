@@ -1,0 +1,162 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot Todo App</title>
+    <style>
+        /* CSS: Basic Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+        }
+        .todo-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        h2 { text-align: center; color: #333; }
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #218838; }
+        ul { list-style: none; padding: 0; }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="todo-container">
+    <h2>My To-Do List</h2>
+
+    <div class="input-section">
+        <input type="text" id="todo-input" placeholder="Add a new task...">
+        <button onclick="addTodo()">Add</button>
+    </div>
+
+    <ul id="todo-list"></ul>
+</div>
+
+<script>
+    // JavaScript: Connecting to your Spring Boot Backend
+    const API_URL = "http://localhost:8080/api/todos";
+
+    // 1. Fetch and Display Todos when page loads
+    async function fetchTodos() {
+        try {
+            const response = await fetch(API_URL);
+            const todos = await response.json();
+
+            const todoList = document.getElementById('todo-list');
+            todoList.innerHTML = ''; // Clear existing list
+
+            todos.forEach(todo => {
+                const li = document.createElement('li');
+
+                // Add a class if completed is true
+                if (todo.completed) {
+                    li.classList.add('completed');
+                }
+
+                li.innerHTML = `
+                    <span onclick="toggleComplete(${todo.id}, '${todo.title}', ${todo.completed})">${todo.title}</span>
+                    <button class="delete-btn" onclick="deleteTodo(${todo.id})">Delete</button>
+                `;
+                todoList.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Error fetching todos:", error);
+        }
+    }
+
+    // 2. Add a new Todo (POST)
+    async function addTodo() {
+        const input = document.getElementById('todo-input');
+        const title = input.value.trim();
+
+        if (!title) return;
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title, completed: false })
+            });
+            input.value = ''; // Clear input field
+            fetchTodos(); // Refresh the list
+        } catch (error) {
+            console.error("Error adding todo:", error);
+        }
+    }
+
+    // 3. Toggle Complete Status (PUT)
+    async function toggleComplete(id, title, currentStatus) {
+        try {
+            await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title, completed: !currentStatus }) // Inverse the status
+            });
+            fetchTodos(); // Refresh the list
+        } catch (error) {
+            console.error("Error updating todo:", error);
+        }
+    }
+
+    // 4. Delete a Todo (DELETE)
+    async function deleteTodo(id) {
+        try {
+            await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+            fetchTodos(); // Refresh the list
+        } catch (error) {
+            console.error("Error deleting todo:", error);
+        }
+    }
+
+    // Initial call to load todos when the page opens
+    fetchTodos();
+</script>
+
+</body>
+</html>
